@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "npx cap add android --skip-deps-check || true && npx cap sync android",
+    "postbuild": "npx cap add android || true && npx cap sync android",
     "preview": "vite preview",
     "cap:sync": "npx cap sync",
-    "cap:add:android": "npx cap add android --skip-deps-check",
-    "cap:add:ios": "npx cap add ios --skip-deps-check"
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios"
   },
   "dependencies": {
     "react": "18.2.0",
