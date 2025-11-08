@@ -1,93 +1,179 @@
-import React, { useState } from "react";
+import { useMemo, useState } from "react";
+import { pickRandom, scenarioPrompts } from "./data/prompts";
 
-const BG = "#0F1115";
-const SURFACE = "#151922";
-const TEXT = "#EAEAF0";
-const ACCENT = "#FF4FB2";
+type Screen = "welcome" | "players" | "round" | "vote" | "results";
 
-function Header({ time, onRestart }: { time: string; onRestart: () => void }) {
+export default function App() {
+  const [screen, setScreen] = useState<Screen>("welcome");
+  const [players, setPlayers] = useState<string[]>([]);
+  const [nameInput, setNameInput] = useState("");
+  const [roundIndex, setRoundIndex] = useState(0);
+  const [currentPlayer, setCurrentPlayer] = useState<string | null>(null);
+  const [votes, setVotes] = useState<Record<string, number>>({}); // name -> score
+
+  // Her turda rastgele bir oyuncu ve prompt seç
+  const roundPrompt = useMemo(() => {
+    const p = currentPlayer ?? "";
+    const raw = pickRandom(scenarioPrompts);
+    return raw.replaceAll("%%", p || "Player");
+  }, [currentPlayer, roundIndex]);
+
+  function addPlayer() {
+    const clean = nameInput.trim();
+    if (!clean) return;
+    setPlayers((prev) => [...prev, clean]);
+    setNameInput("");
+  }
+
+  function startGame() {
+    if (players.length < 2) return alert("En az 2 oyuncu ekleyin.");
+    setCurrentPlayer(players[0]);
+    setScreen("round");
+  }
+
+  function vote(isAsshole: boolean) {
+    if (currentPlayer && isAsshole) {
+      setVotes((v) => ({ ...v, [currentPlayer]: (v[currentPlayer] ?? 0) + 1 }));
+    }
+    // sıradaki oyuncuya geç
+    const idx = players.indexOf(currentPlayer || "");
+    const nextIdx = (idx + 1) % players.length;
+    const nextRound = idx + 1 === players.length; // tüm oyuncular oylanınca yeni tur
+    if (nextRound) {
+      // yeni tur
+      setRoundIndex((r) => r + 1);
+    }
+    setCurrentPlayer(players[nextIdx]);
+  }
+
+  function reset() {
+    setScreen("welcome");
+    setPlayers([]);
+    setVotes({});
+    setRoundIndex(0);
+    setCurrentPlayer(null);
+  }
+
   return (
-    <div style={{
-      display:"flex",justifyContent:"space-between",alignItems:"center",
-      padding:"12px 16px", borderBottom:`1px solid #262B36`, position:"sticky", top:0, background:BG, zIndex:10
-    }}>
-      <div style={{color:"#fff",fontWeight:900,fontSize:18,letterSpacing:0.5}}>AITA?</div>
-      <div style={{display:"flex",alignItems:"center",gap:12,color:"#fff"}}>
-        <div>⏱ {time}</div>
-        <button onClick={onRestart} aria-label="Restart"
-          style={{background:"transparent",border:"1px solid #3a3f4b",color:"#fff",padding:"4px 8px",borderRadius:8}}>↻</button>
+    <div className="container">
+      {screen === "welcome" && (
+        <Welcome onStart={() => setScreen("players")} />
+      )}
+
+      {screen === "players" && (
+        <div className="card">
+          <h1 className="title">Oyuncuları ekleyin</h1>
+          <p className="sub">2–8 kişi önerilir</p>
+          <div className="row">
+            <input
+              className="input"
+              placeholder="İsim yazın ve Enter’a basın"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addPlayer()}
+            />
+            <button className="btn btn-pink" onClick={addPlayer}>
+              Ekle
+            </button>
+          </div>
+          <div className="spacer" />
+          <div className="grid">
+            {players.map((p) => (
+              <div key={p} className="badge">
+                {p}
+              </div>
+            ))}
+          </div>
+          <div className="spacer" />
+          <div className="row">
+            <button className="btn btn-ghost" onClick={reset}>
+              Geri
+            </button>
+            <button className="btn btn-pink" onClick={startGame}>
+              Oyunu Başlat
+            </button>
+          </div>
+        </div>
+      )}
+
+      {screen === "round" && currentPlayer && (
+        <div className="card">
+          <div className="badge">{`Tur ${roundIndex + 1}`}</div>
+          <h1 className="h1" style={{ marginTop: 8 }}>
+            Sıra sende, {currentPlayer}!
+          </h1>
+          <p className="lead">Aşağıdaki senaryoyu anlatın; sonra oylayın.</p>
+          <div className="spacer" />
+          <div className="card">
+            <div className="title">Senaryo</div>
+            <div className="big">{roundPrompt}</div>
+          </div>
+          <div className="spacer" />
+          <div className="row">
+            <button className="btn btn-pink" onClick={() => vote(true)}>
+              A*SHOLE
+            </button>
+            <button className="btn btn-ghost" onClick={() => vote(false)}>
+              NOT AN A*SHOLE
+            </button>
+          </div>
+          <div className="footer-space" />
+          <div className="sub">
+            Oy: suçlayan = +1 puan {currentPlayer}’a. Sonra sıradaki oyuncu.
+          </div>
+        </div>
+      )}
+
+      {screen === "results" && (
+        <Results votes={votes} onRestart={reset} />
+      )}
+    </div>
+  );
+}
+
+function Welcome({ onStart }: { onStart: () => void }) {
+  return (
+    <div className="card center" style={{ minHeight: 420, textAlign: "left" }}>
+      <div>
+        <h1 className="h1">Ready to find the biggest A*shole?</h1>
+        <p className="lead">
+          Reddit’in AITA’sından ilham alan hikâye anlatma parti oyunu.
+        </p>
+        <div className="spacer" />
+        <button className="btn btn-pink" onClick={onStart}>
+          Start Game
+        </button>
       </div>
     </div>
   );
 }
 
-export default function App(){
-  const [screen,setScreen]=useState<"start"|"story"|"judge"|"leaderboard">("start");
-  const [time,setTime]=useState("5:00");
-  const [showConfirm,setShowConfirm]=useState(false);
-
+function Results({
+  votes,
+  onRestart,
+}: {
+  votes: Record<string, number>;
+  onRestart: () => void;
+}) {
+  const entries = Object.entries(votes).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
   return (
-    <div style={{minHeight:"100vh",background:BG,color:TEXT}}>
-      <Header time={time} onRestart={()=>setShowConfirm(true)} />
-
-      {screen==="start" && (
-        <div style={{padding:"24px 16px",maxWidth:720,margin:"0 auto"}}>
-          <h1 style={{fontWeight:900,margin:"8px 0 12px"}}>Ready to find the biggest A*shole?</h1>
-          <p style={{opacity:.9,margin:"0 0 20px"}}>Storytelling party game inspired by Reddit’s AITA.</p>
-
-          <button style={{padding:"14px 18px",background:ACCENT,border:"none",borderRadius:10,color:"#fff",fontWeight:700}}
-            onClick={()=>setScreen("story")}>Start Game</button>
-        </div>
-      )}
-
-      {screen==="story" && (
-        <div style={{padding:"24px 16px",maxWidth:720,margin:"0 auto"}}>
-          <h2 style={{fontWeight:900,margin:"8px 0 12px"}}>Your Turn, %%!</h2>
-          <div style={{background:SURFACE,borderRadius:12,padding:16,margin:"16px 0"}}>
-            Tell your story prompt…
+    <div className="card">
+      <h1 className="title">Sonuçlar</h1>
+      <div className="spacer" />
+      {entries.length === 0 ? (
+        <p className="sub">Henüz oy yok.</p>
+      ) : (
+        entries.map(([name, score]) => (
+          <div key={name} className="row" style={{ justifyContent: "space-between" }}>
+            <div className="big">{name}</div>
+            <div className="badge">{score} puan</div>
           </div>
-          <button style={{padding:"12px 16px",background:ACCENT,border:"none",borderRadius:10,color:"#fff",fontWeight:700}}
-            onClick={()=>setScreen("judge")}>Finish</button>
-        </div>
+        ))
       )}
-
-      {screen==="judge" && (
-        <div style={{padding:"24px 16px",maxWidth:720,margin:"0 auto"}}>
-          <h2 style={{fontWeight:900,margin:"8px 0 6px"}}>Your Call, %%!</h2>
-          <p style={{margin:"0 0 14px"}}>Was %% the A*shole in this story?</p>
-          <div style={{display:"grid",gap:12,maxWidth:360}}>
-            <button style={{padding:"12px 16px",background:ACCENT,border:"none",borderRadius:10,color:"#fff",fontWeight:800}}>A*SHOLE</button>
-            <button style={{padding:"12px 16px",background:"transparent",border:`2px solid ${ACCENT}`,borderRadius:10,color:TEXT,fontWeight:800}}>NOT AN A*SHOLE</button>
-          </div>
-          <div style={{marginTop:16}}>
-            <button onClick={()=>setScreen("leaderboard")} style={{padding:"10px 14px",border:"1px solid #3a3f4b",background:"transparent",color:"#fff",borderRadius:8}}>Continue</button>
-          </div>
-        </div>
-      )}
-
-      {screen==="leaderboard" && (
-        <div style={{padding:"24px 16px",maxWidth:720,margin:"0 auto"}}>
-          <h2 style={{fontWeight:900}}>Game Over</h2>
-          <ol style={{lineHeight:1.9}}>
-            <li>Bora — 3 A* points</li>
-            <li>Ece — 2 A* points</li>
-          </ol>
-          <button style={{padding:"12px 16px",background:ACCENT,border:"none",borderRadius:10,color:"#fff",fontWeight:700}}
-            onClick={()=>setScreen("start")}>New Game</button>
-        </div>
-      )}
-
-      {showConfirm && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.6)",display:"grid",placeItems:"center"}}>
-          <div style={{background:SURFACE,padding:20,borderRadius:12,display:"grid",gap:12,minWidth:280}}>
-            <div>Are you sure you want to restart?</div>
-            <div style={{display:"flex",gap:12}}>
-              <button style={{border:`2px solid ${ACCENT}`,background:"transparent",color:TEXT,borderRadius:8,padding:"8px 12px"}} onClick={()=>setShowConfirm(false)}>Cancel</button>
-              <button style={{background:ACCENT,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px"}} onClick={()=>{setShowConfirm(false);setScreen("start");}}>Restart</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="spacer" />
+      <button className="btn btn-pink" onClick={onRestart}>
+        Baştan Başla
+      </button>
     </div>
   );
 }
