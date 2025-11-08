@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "npx cap add android --skip-deps-check || true && npx cap sync android",
     "preview": "vite preview",
     "cap:sync": "npx cap sync",
     "cap:add:android": "npx cap add android --skip-deps-check",
