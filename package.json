@@ -3,15 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-"scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "postbuild": "npx cap add ios || true && npx cap add android || true && npx cap sync || true && /usr/libexec/PlistBuddy -c 'Set :CFBundleDisplayName AITA?' ios/App/App/Info.plist",
-  "preview": "vite preview",
-  "cap:sync": "npx cap sync",
-  "cap:add:android": "npx cap add android",
-  "cap:add:ios": "npx cap add ios"
-}
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "postbuild": "npx cap add ios || true && npx cap add android || true && npx cap sync || true && /usr/libexec/PlistBuddy -c \"Set :CFBundleDisplayName AITA?\" ios/App/App/Info.plist",
+    "preview": "vite preview",
+    "cap:sync": "npx cap sync",
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios"
   },
   "dependencies": {
     "react": "18.2.0",
