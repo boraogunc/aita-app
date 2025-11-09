@@ -4,11 +4,11 @@
   "version": "0.1.0",
   "type": "module",
 {
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "postbuild": "npx cap add ios || true && npx cap add android || true && npx cap sync || true && /usr/libexec/PlistBuddy -c \"Set :CFBundleDisplayName AITA?\" ios/App/App/Info.plist && /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $(date +%Y%m%d%H%M%S)\" ios/App/App/Info.plist",
-    "preview": "vite preview"
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "postbuild": "npx cap add ios || true && npx cap add android || true && npx cap sync || true && /usr/libexec/PlistBuddy -c \"Set :CFBundleDisplayName AITA?\" ios/App/App/Info.plist && /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $(date +%Y%m%d%H%M%S)\" ios/App/App/Info.plist",
+  "preview": "vite preview"
   }
 }
   },
