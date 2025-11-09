@@ -6,19 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "npx cap add ios || true && npx cap add android || true && npx cap sync || true && /usr/libexec/PlistBuddy -c \"Set :CFBundleDisplayName AITA?\" ios/App/App/Info.plist && /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion 20\" ios/App/App/Info.plist",
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@capacitor/core": "^6.0.0"
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@capacitor/cli": "^6.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
     "typescript": "^5.6.3",
-    "vite": "^5.4.10",
-    "@vitejs/plugin-react": "^4.3.1",
-    "@capacitor/cli": "6.1.2"
+    "vite": "^5.4.0"
   }
 }
