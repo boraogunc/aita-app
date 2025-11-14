@@ -1,24 +1,28 @@
-
-import React, { useEffect, useContext } from 'react';
-import { GameContext } from '../contexts/GameContext';
-import { GameScreen } from '../types';
+// components/SplashScreen.tsx
+import React, { useEffect, useContext } from "react";
+import { GameContext } from "../contexts/GameContext";
+import { GameScreen } from "../types";
 
 const SplashScreen: React.FC = () => {
   const { setScreen } = useContext(GameContext);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setScreen(GameScreen.SETUP);
-    }, 2000); // Show splash for 2 seconds
+    }, 2000);
 
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => window.clearTimeout(timer);
+  }, [setScreen]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-full animate-fadeIn">
-      <h1 className="text-8xl md:text-9xl font-extrabold tracking-tighter">AITA?</h1>
-      <p className="text-xl md:text-2xl text-pink-400 tracking-widest mt-2">STORYTELLING PARTY GAME</p>
+    <div className="splash-card center">
+      <div className="devil">😈</div>
+      <div className="hero">AITA? Card Game</div>
+      <p className="small muted">
+        Storytelling party game inspired by the internet’s favorite question:
+        <br />
+        <strong>“Am I the A*shole?”</strong>
+      </p>
     </div>
   );
 };
